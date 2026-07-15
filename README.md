@@ -4,7 +4,7 @@
 
 # pr-review-skill-generator
 
-**A skill that generates a skill.**
+**A skill that generates a skill to review PRs.**
 
 Mine your last 100 merged PRs into an AI reviewer that knows your business logic,<br/>
 your team's past decisions, and the module that has burned you three times.
