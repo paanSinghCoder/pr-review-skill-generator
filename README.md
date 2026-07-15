@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/icon.svg" width="128" height="128" alt="pr-review-skill-generator — a shiba bonking a bad PR" />
+<img src="assets/doge-bonk.jpg" width="300" alt="doge bonking a bad PR" />
 
 # pr-review-skill-generator
 
