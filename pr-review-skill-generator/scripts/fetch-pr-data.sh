@@ -4,10 +4,12 @@
 # Requires: gh (GitHub CLI), authenticated. No other dependencies (no jq needed).
 #
 # Usage:
-#   fetch-pr-data.sh [--repo owner/name] [--count N] [--out DIR]
+#   fetch-pr-data.sh [--repo owner/name] [--count N] [--since YYYY-MM-DD] [--out DIR]
 #
 #   --repo   Repository to mine (default: the repo of the current directory)
 #   --count  Number of most recent merged PRs to fetch (default: 100)
+#   --since  Only PRs merged AFTER this date (for incremental regeneration).
+#            --count then acts as a cap (raise it if the gap is large).
 #   --out    Output directory (default: ./.pr-skill-workdir)
 #
 # Output layout:
@@ -15,7 +17,10 @@
 #   $OUT/index.json            — list of fetched PRs (number, title, author, mergedAt, url)
 #   $OUT/numbers.txt           — PR numbers, one per line, newest first
 #   $OUT/prs/<N>.meta.json     — PR metadata: body, files, commits, reviews, issue comments
-#   $OUT/prs/<N>.threads.json  — inline review threads: resolution status, path, diff hunks
+#   $OUT/prs/<N>.threads.json  — {truncated, nodes}: inline review threads with
+#                                resolution status, path, diff hunks
+#   $OUT/truncated.txt         — PRs whose threads/comments exceeded the fetch window
+#                                (only if any; their thread data is incomplete)
 #   $OUT/failed.txt            — PR numbers that failed to fetch (only if any failed)
 #
 # The script is resumable: PRs already present in $OUT/prs/ are skipped on re-run.
@@ -24,12 +29,14 @@ set -uo pipefail
 
 REPO=""
 COUNT=100
+SINCE=""
 OUT=".pr-skill-workdir"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --repo)  REPO="$2"; shift 2 ;;
     --count) COUNT="$2"; shift 2 ;;
+    --since) SINCE="$2"; shift 2 ;;
     --out)   OUT="$2"; shift 2 ;;
     -h|--help) grep '^#' "$0" | cut -c 3-; exit 0 ;;
     *) echo "Unknown argument: $1 (see --help)" >&2; exit 1 ;;
@@ -52,15 +59,22 @@ NAME="${REPO##*/}"
 
 mkdir -p "$OUT/prs"
 echo "$REPO" > "$OUT/repo.txt"
-rm -f "$OUT/failed.txt"
+rm -f "$OUT/failed.txt" "$OUT/truncated.txt"
 
-echo "Listing last $COUNT merged PRs of $REPO ..."
-gh pr list --repo "$REPO" --state merged --limit "$COUNT" \
+LIST_ARGS=(--repo "$REPO" --state merged --limit "$COUNT")
+if [[ -n "$SINCE" ]]; then
+  LIST_ARGS+=(--search "merged:>$SINCE")
+  echo "Listing PRs of $REPO merged after $SINCE (cap $COUNT) ..."
+else
+  echo "Listing last $COUNT merged PRs of $REPO ..."
+fi
+
+gh pr list "${LIST_ARGS[@]}" \
   --json number,title,author,mergedAt,url > "$OUT/index.json" || {
   echo "error: could not list PRs for $REPO" >&2
   exit 1
 }
-gh pr list --repo "$REPO" --state merged --limit "$COUNT" \
+gh pr list "${LIST_ARGS[@]}" \
   --json number --jq '.[].number' > "$OUT/numbers.txt"
 
 TOTAL=$(wc -l < "$OUT/numbers.txt" | tr -d ' ')
@@ -74,14 +88,21 @@ THREADS_QUERY='query($owner:String!,$repo:String!,$number:Int!){
   repository(owner:$owner,name:$repo){
     pullRequest(number:$number){
       reviewThreads(first:100){
+        pageInfo{hasNextPage}
         nodes{
           isResolved isOutdated path line
-          comments(first:50){nodes{author{login} body createdAt diffHunk}}
+          comments(first:50){
+            pageInfo{hasNextPage}
+            nodes{author{login} body createdAt diffHunk}
+          }
         }
       }
     }
   }
 }'
+THREADS_JQ='.data.repository.pullRequest.reviewThreads
+  | {truncated: (.pageInfo.hasNextPage or ([.nodes[].comments.pageInfo.hasNextPage] | any)),
+     nodes: .nodes}'
 
 i=0
 while IFS= read -r n; do
@@ -107,7 +128,7 @@ while IFS= read -r n; do
 
   if ! gh api graphql -f query="$THREADS_QUERY" \
       -f owner="$OWNER" -f repo="$NAME" -F number="$n" \
-      --jq '.data.repository.pullRequest.reviewThreads.nodes' \
+      --jq "$THREADS_JQ" \
       > "$threads.tmp" 2>/dev/null; then
     echo "  warning: failed to fetch review threads for #$n, skipping" >&2
     rm -f "$threads.tmp" "$meta"
@@ -115,6 +136,10 @@ while IFS= read -r n; do
     continue
   fi
   mv "$threads.tmp" "$threads"
+  if grep -q '"truncated": *true' "$threads"; then
+    echo "  warning: #$n has more threads/comments than one fetch window — data incomplete" >&2
+    echo "$n" >> "$OUT/truncated.txt"
+  fi
 
   sleep 0.2  # stay well clear of API rate limits
 done < "$OUT/numbers.txt"

@@ -14,8 +14,12 @@ For each PR `N` in the work directory:
   committedDate, messageHeadline, messageBody), `reviews` (author, state:
   APPROVED/CHANGES_REQUESTED/COMMENTED, body), `comments` (issue-level
   comments: author, body, createdAt), `labels`.
-- `prs/N.threads.json` — inline review threads: `isResolved`, `isOutdated`,
-  `path`, `line`, and `comments` (author.login, body, createdAt, diffHunk).
+- `prs/N.threads.json` — `{truncated, nodes}` where `nodes` is the list of
+  inline review threads: `isResolved`, `isOutdated`, `path`, `line`, and
+  `comments.nodes` (author.login, body, createdAt, diffHunk). If `truncated`
+  is true (also listed in `truncated.txt`), the PR had more threads/comments
+  than one fetch window — mine what's there, but never treat absence of a
+  comment in a truncated PR as evidence of anything.
 
 ## Step 1: classify authors, then filter
 
@@ -40,15 +44,24 @@ emoji-only), CI status chatter, and thread replies that only say "done"/"fixed"
 ## Step 2: know the enforcement signals
 
 The single most important judgment per thread: **was this comment acted on?**
-Evidence, strongest first:
+Evidence sufficient for `confidence: validated`, strongest first:
 
-1. A commit in `commits` with `committedDate` AFTER the comment's `createdAt`,
-   whose message references the concern — or any later commit when the thread
-   is also resolved/outdated.
-2. `isOutdated: true` — the code the comment pointed at changed after the
-   comment was made. Strong signal the author touched that code in response.
-3. `isResolved: true` plus an author reply like "done", "fixed", "good catch".
-4. `isResolved: true` alone — weak; teams bulk-resolve. Combine with 1–2.
+1. A commit in `commits` with `committedDate` AFTER the comment's `createdAt`
+   whose message references the concern (fix-commit evidence).
+2. An author reply like "done", "fixed", "good catch" AND the thread resolved.
+3. `isOutdated: true` AND a later commit whose changed files (from the commit
+   message or the PR's `files`) plausibly include the thread's `path`.
+
+NOT sufficient on their own:
+
+- `isOutdated` alone — rebases and force-pushes mark threads outdated without
+  anything being addressed. If the PR looks rebased (every commit's
+  `committedDate` is later than every comment, or all commits share one
+  timestamp), treat `isOutdated` as noise entirely.
+- `isResolved` alone — teams bulk-resolve threads at merge time.
+
+A thread with real discussion but only weak evidence can still be a candidate —
+emit it with `confidence: asserted`, never `validated`.
 
 A thread where the author **pushed back** ("this is intentional because…",
 "we decided X in #123", "won't fix — see ADR") and the reviewer accepted
@@ -129,6 +142,18 @@ Output ONLY a JSON array (no prose), one object per candidate:
   "confidence": "validated"
 }
 ```
+
+Contract (the orchestrator validates every batch against this before
+distillation; a failing batch gets one retry):
+
+- Output parses as a JSON array of objects.
+- Regular candidates require: `type` (one of the nine types above), `statement`
+  (non-empty string), `category` (string), `paths` (array of strings, may be
+  empty), `prs` (non-empty array of integers), `evidence` (string),
+  `confidence` (`validated` | `asserted` | `inferred`).
+- `file-stats` candidates require: `type`, `pr` (integer), `paths`,
+  `comment_counts` (object mapping path → integer), `post_merge_fix` (bool),
+  `changes_requested` (bool).
 
 - `statement`: imperative, generalized, self-contained (readable without the PR).
 - `category`: a short domain bucket you infer from paths/labels (e.g.

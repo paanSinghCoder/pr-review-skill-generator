@@ -27,9 +27,15 @@ reach it** — don't read them all upfront.
    **incremental mode** (see below).
 3. Ask the user (one round of questions, then proceed without further asking):
    - How many merged PRs to mine? Default **100** (cost scales linearly).
+   - **Full run or preview first?** A preview mines ~15 PRs, shows the top
+     candidate rules and the would-be decisions.md entries, then stops and
+     asks before the full run (no skill written, no backtest). Recommend the
+     preview to first-time users.
    - Output location? Default `.claude/skills/pr-review/` in the target repo.
    - Monorepo scoping — restrict to a subdirectory, or mine everything?
-   - OK to spend ~10–20 subagent runs on mining + backtest? Default yes.
+   Before proceeding, state the estimated cost: ~`ceil(N/10)` miner subagents
+   + one blind reviewer per holdout + 1 judge (so ~17 agent runs for N=100,
+   H=5; a preview is ~2).
 4. Sanity-check scale: `gh pr list --state merged --limit <N> --json number --jq length`.
    - Fewer than 30 merged PRs: proceed, but warn that the skill will be thin.
    - Fewer than 15: skip holdouts/backtest (note it in metadata).
@@ -45,7 +51,9 @@ scripts/fetch-pr-data.sh --count <N> --out <workdir>
 Use a work directory outside the repo (a scratch/tmp path) so nothing lands in
 the user's git status. The script is resumable — on partial failure, re-run
 it. If more than ~10% of PRs land in `failed.txt`, stop and show the user the
-errors (usually auth scope or rate limiting) instead of mining a biased sample.
+errors (usually auth scope or rate limiting) instead of mining a biased
+sample. If `truncated.txt` exists, tell the user which PRs have incomplete
+thread data (miners are instructed to handle it).
 
 ## Phase 2 — select holdouts
 
@@ -65,9 +73,15 @@ filtering, and the exact candidate JSON format.
    instruct it to read it first), and the instruction to return ONLY the JSON
    candidate array. If parallel subagents aren't available, process batches
    sequentially yourself with fresh attention per batch.
-3. Concatenate all candidate arrays into `<workdir>/candidates.json`. A batch
-   that returns malformed JSON gets one retry, then its PRs are logged as
-   unmined in the final report — don't silently drop them.
+3. Write each batch's output to `<workdir>/candidates/batch-<K>.json` as it
+   completes (a crash then costs one batch, not all). Validate each batch
+   against the contract in mining-guide.md Step 4 — quickest check:
+   `python3 -c "import json,sys; [c['type'] and c['prs' if 'prs' in c else 'pr'] for c in json.load(open(sys.argv[1]))]" <file>`
+   (if python3 is unavailable, inspect the file yourself). A batch that fails
+   to parse or violates the contract gets one retry with the error quoted;
+   after that its PRs are logged as unmined in the final report — don't
+   silently drop them. Then concatenate all batches into
+   `<workdir>/candidates.json`.
 4. Additionally, mine repo-local docs yourself (no subagent needed):
    CONTRIBUTING, docs/, ADRs, architecture notes — anything `doc-link`
    candidates or PR bodies pointed at inside the repo. Emit candidates in the
@@ -80,16 +94,33 @@ cluster → score → cut → organize into domains → decisions.md → glossar
 hot-zones → routing table → context-wanted. Check the repo for linter/CI
 configs at the "cut" step, as the guide requires.
 
+**Preview mode stops here.** Show the top ~15 rules by score (with
+provenance), the decisions.md entries, and the hot zones, then ask: proceed
+to the full run, or stop? On proceed, fetch and mine the remaining PRs
+(preview batches are already done) and select holdouts from PRs the preview
+did NOT mine, then continue normally.
+
 ## Phase 5 — write the generated skill
 
 Read `references/generated-skill-template.md` now. Write every file exactly in
 that structure to the output location, filling placeholders:
 
-- `trained-range`: lowest → highest PR number actually mined; count mined and
-  held out.
+- `trained-range`: lowest → highest PR number actually mined, plus the
+  highest PR's **merge date** (incremental runs fetch by this date); count
+  mined and held out.
 - `generated-on`: today's date. Get it from the system, don't guess.
 - `backtest`: leave as `pending` — Phase 6 fills it.
 - Respect every size budget. Every rule carries provenance.
+
+Before writing, run a scrub pass over every file you are about to write:
+
+```bash
+grep -rnE 'gh[pousr]_[A-Za-z0-9]{20,}|github_pat_|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY|xox[baprs]-|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' <output-dir>
+```
+
+Any hit: replace the value with `[scrubbed]` (emails: keep GitHub handles
+instead). Mined comment text can contain leaked credentials — the generated
+skill must not republish them.
 
 ## Phase 6 — backtest
 
@@ -119,10 +150,14 @@ End with a report containing, in this order:
 
 Goal: extend, don't rebuild — and never touch human content.
 
-1. Read the existing skill's `trained-range` (…→ #LAST) and all its files.
-2. Fetch only newer PRs: run the script with `--count` ≈ (latest PR number −
-   LAST), capped at 300; then ignore any fetched PR ≤ #LAST. If the gap
-   exceeds 300, recommend a full regeneration instead.
+1. Read the existing skill's `trained-range` (…→ #LAST, merged through DATE)
+   and all its files.
+2. Fetch only newer PRs by merge date:
+   `scripts/fetch-pr-data.sh --since <DATE> --count 300 --out <workdir>`
+   then drop any fetched PR ≤ #LAST (boundary-day overlap). If the metadata
+   predates the DATE field, fall back to the merge date of #LAST
+   (`gh pr view <LAST> --json mergedAt`). If more than 300 PRs come back,
+   recommend a full regeneration instead.
 3. Mine the new PRs (Phases 2–3, holdouts from new PRs only if ≥ 15).
 4. Merge per `distillation-guide.md` § "Incremental regeneration": new
    evidence extends existing rules' provenance; contradictions move rules to

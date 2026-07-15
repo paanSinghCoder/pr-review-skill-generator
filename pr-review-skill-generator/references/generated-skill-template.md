@@ -30,7 +30,7 @@ description: Repo-specific PR review for {{OWNER/REPO}} using mined team convent
 <!-- generated-by: pr-review-skill-generator v1 -->
 <!-- repo: {{OWNER/REPO}} -->
 <!-- generated-on: {{YYYY-MM-DD}} -->
-<!-- trained-range: PR #{{FIRST}} -> #{{LAST}} ({{N}} PRs mined, {{H}} held out) -->
+<!-- trained-range: PR #{{FIRST}} -> #{{LAST}}, merged through {{YYYY-MM-DD}} ({{N}} PRs mined, {{H}} held out) -->
 <!-- backtest: {{ONE-LINE SUMMARY OR "skipped — <reason>"}} -->
 
 # PR review — {{OWNER/REPO}}
