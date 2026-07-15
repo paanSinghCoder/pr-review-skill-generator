@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/doge-bonk.png" width="230" alt="doge bonking a bad PR" />
+<img src="assets/doge-bonk-disc.png" width="230" alt="doge bonking a bad PR" />
 
 # pr-review-skill-generator
 
