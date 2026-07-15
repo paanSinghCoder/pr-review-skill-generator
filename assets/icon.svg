@@ -1,0 +1,38 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4F46E5"/>
+      <stop offset="0.55" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#A21CAF"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.15" r="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- tile -->
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <rect width="256" height="256" rx="56" fill="url(#glow)"/>
+
+  <!-- PRs dripping in -->
+  <circle cx="128" cy="26" r="5" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="128" cy="42" r="3.5" fill="#FFFFFF" opacity="0.6"/>
+
+  <!-- distilled liquid -->
+  <path d="M90 150 L166 150 L179 179 Q182 190 170 190 L86 190 Q74 190 77 179 Z" fill="#FFFFFF" opacity="0.25"/>
+
+  <!-- commit nodes as bubbles -->
+  <circle cx="107" cy="169" r="7" stroke="#FFFFFF" stroke-width="5" fill="none"/>
+  <circle cx="136" cy="161" r="5" stroke="#FFFFFF" stroke-width="4.5" fill="none"/>
+  <circle cx="124" cy="179" r="4" stroke="#FFFFFF" stroke-width="4" fill="none"/>
+
+  <!-- flask -->
+  <path d="M112 58 L112 104 L76.5 179 Q71 193 85 193 L171 193 Q185 193 179.5 179 L144 104 L144 58"
+        stroke="#FFFFFF" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M101 58 L155 58" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"/>
+
+  <!-- the distilled spark -->
+  <path d="M196 30 C199.2 44 206 50.8 220 54 C206 57.2 199.2 64 196 78 C192.8 64 186 57.2 172 54 C186 50.8 192.8 44 196 30 Z" fill="#FFFFFF"/>
+  <path d="M221 92 C222.6 99 226 102.4 233 104 C226 105.6 222.6 109 221 116 C219.4 109 216 105.6 209 104 C216 102.4 219.4 99 221 92 Z" fill="#FFFFFF" opacity="0.8"/>
+</svg>

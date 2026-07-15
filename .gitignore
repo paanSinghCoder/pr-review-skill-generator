@@ -1,0 +1,6 @@
+# macOS
+.DS_Store
+
+# work directories created by the fetch script / generation runs
+.pr-skill-workdir/
+*.pr-skill-workdir/
