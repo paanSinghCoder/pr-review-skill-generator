@@ -15,24 +15,52 @@
   <rect width="256" height="256" rx="56" fill="url(#bg)"/>
   <rect width="256" height="256" rx="56" fill="url(#glow)"/>
 
-  <!-- PRs dripping in -->
-  <circle cx="128" cy="26" r="5" fill="#FFFFFF" opacity="0.9"/>
-  <circle cx="128" cy="42" r="3.5" fill="#FFFFFF" opacity="0.6"/>
+  <!-- BONK! -->
+  <text x="188" y="54" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif"
+        font-size="34" font-weight="900" fill="#FFD93D" stroke="#7C2D12" stroke-width="1.5"
+        transform="rotate(-8 188 54)">BONK!</text>
 
-  <!-- distilled liquid -->
-  <path d="M90 150 L166 150 L179 179 Q182 190 170 190 L86 190 Q74 190 77 179 Z" fill="#FFFFFF" opacity="0.25"/>
+  <!-- swing motion lines -->
+  <path d="M114 66 Q146 50 182 58" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity="0.5" fill="none"/>
+  <path d="M104 86 Q132 72 166 76" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity="0.35" fill="none"/>
 
-  <!-- commit nodes as bubbles -->
-  <circle cx="107" cy="169" r="7" stroke="#FFFFFF" stroke-width="5" fill="none"/>
-  <circle cx="136" cy="161" r="5" stroke="#FFFFFF" stroke-width="4.5" fill="none"/>
-  <circle cx="124" cy="179" r="4" stroke="#FFFFFF" stroke-width="4" fill="none"/>
+  <!-- bad PR getting bonked -->
+  <g transform="rotate(8 202 158)">
+    <rect x="180" y="132" width="44" height="54" rx="7" fill="#FFFFFF"/>
+    <path d="M192 146 L212 166 M212 146 L192 166" stroke="#E5484D" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M188 176 L216 176" stroke="#C9CDD6" stroke-width="4" stroke-linecap="round"/>
+  </g>
 
-  <!-- flask -->
-  <path d="M112 58 L112 104 L76.5 179 Q71 193 85 193 L171 193 Q185 193 179.5 179 L144 104 L144 58"
-        stroke="#FFFFFF" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <path d="M101 58 L155 58" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"/>
+  <!-- impact star -->
+  <polygon points="231,118 217,113 223.4,99.6 210,106 205,92 200,106 186.6,99.6 193,113 179,118 193,123 186.6,136.4 200,130 205,144 210,130 223.4,136.4 217,123"
+           fill="#FFD93D" stroke="#F59E0B" stroke-width="2" stroke-linejoin="round"/>
 
-  <!-- the distilled spark -->
-  <path d="M196 30 C199.2 44 206 50.8 220 54 C206 57.2 199.2 64 196 78 C192.8 64 186 57.2 172 54 C186 50.8 192.8 44 196 30 Z" fill="#FFFFFF"/>
-  <path d="M221 92 C222.6 99 226 102.4 233 104 C226 105.6 222.6 109 221 116 C219.4 109 216 105.6 209 104 C216 102.4 219.4 99 221 92 Z" fill="#FFFFFF" opacity="0.8"/>
+  <!-- bat, mid-bonk -->
+  <g transform="rotate(20 155 100)">
+    <rect x="148" y="91" width="72" height="19" rx="9.5" fill="#B5651D"/>
+    <rect x="140" y="94" width="14" height="13" rx="6.5" fill="#8B4513"/>
+  </g>
+
+  <!-- shiba -->
+  <!-- ears -->
+  <polygon points="56,124 70,72 100,106" fill="#F2A65A"/>
+  <polygon points="63,116 71,84 88,104" fill="#E88DA0"/>
+  <polygon points="110,106 140,72 154,124" fill="#F2A65A"/>
+  <polygon points="122,104 139,84 147,116" fill="#E88DA0"/>
+  <!-- head -->
+  <ellipse cx="105" cy="152" rx="54" ry="48" fill="#F2A65A"/>
+  <!-- muzzle -->
+  <ellipse cx="105" cy="172" rx="32" ry="23" fill="#FFF3E0"/>
+  <!-- eyes: smug closed -->
+  <path d="M74 140 Q82 132 90 140" stroke="#3B2716" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+  <path d="M118 140 Q126 132 134 140" stroke="#3B2716" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+  <!-- nose + mouth -->
+  <circle cx="105" cy="163" r="5.5" fill="#3B2716"/>
+  <path d="M96 176 Q105 184 114 176" stroke="#3B2716" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- blush -->
+  <circle cx="66" cy="162" r="8" fill="#E88DA0" opacity="0.55"/>
+  <circle cx="144" cy="162" r="8" fill="#E88DA0" opacity="0.55"/>
+  <!-- paws gripping the bat -->
+  <circle cx="158" cy="104" r="11" fill="#F2A65A" stroke="#D98A3D" stroke-width="2"/>
+  <circle cx="171" cy="109" r="10" fill="#F2A65A" stroke="#D98A3D" stroke-width="2"/>
 </svg>

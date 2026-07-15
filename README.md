@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/icon.svg" width="128" height="128" alt="pr-review-skill-generator — a flask distilling PRs into knowledge" />
+<img src="assets/icon.svg" width="128" height="128" alt="pr-review-skill-generator — a shiba bonking a bad PR" />
 
 # pr-review-skill-generator
 
