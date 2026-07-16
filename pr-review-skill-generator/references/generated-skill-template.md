@@ -93,6 +93,18 @@ Ground rules:
 - If the PR description references an internal doc you can't read, note it
   once under a "Context I lacked" line rather than guessing.
 
+**Document-the-why nudge.** When a NEW or CHANGED line encodes a domain
+decision whose reason is not evident — a threshold or magic number, a
+special-case branch, an ordering constraint, rounding/currency/time-zone
+handling, a retry/timeout value — and no nearby comment, clear name, glossary
+entry, or mined rule explains it, propose a code comment. Draft the comment
+yourself (≤ 2 lines), sourcing the reason from the PR description, linked
+issue, or diff context; if the reason isn't inferable, phrase the draft as a
+question for the author to answer in place. Max 2 nudges per review; they
+never count against the 5 findings and are never blockers. The point:
+knowledge that would otherwise live only in this PR's thread becomes code
+that the next reader — and the next regeneration of this skill — can see.
+
 ## Step 4 — report
 
 Maximum 5 findings, ordered by severity. If nothing significant: say the
@@ -113,6 +125,12 @@ Suggestion:
 
 ### 🟡 Should fix — <title> …
 ### 🔵 Consider — <title> …
+
+### 📝 Document the why (max 2, optional)
+`src/payments/retry.ts:57` — `BACKOFF_CAP = 7_000` looks deliberate but unexplained. Suggested comment:
+```suggestion
+// 7s keeps total retry time under the gateway's 10s idempotency window (PR #612)
+```
 
 Checked and fine: <one line — invariants/zones checked that passed>
 Context I lacked: <only if applicable>

@@ -85,6 +85,10 @@ Checked and fine: idempotency-key handling, migration ordering, webhook signatur
 Capped at **5 findings**, ranked by severity. If the change is fine, it says so
 in one line instead of manufacturing feedback.
 
+Plus at most two **"document the why"** nudges: when new code encodes a
+business decision without saying why, it drafts the comment for you — so the
+reasoning lands in the code, not just in this PR's thread.
+
 ## 🎯 It measures itself before you trust it
 
 Generation holds out a handful of human-reviewed PRs, reconstructs the code
