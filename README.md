@@ -67,17 +67,16 @@ rule back to the discussion it came from — and review findings cite their sour
 ## Review: refund flow change looks risky — 1 blocker
 
 ### 🔴 Blocker — refund can exceed remaining balance
-`src/billing/refunds.ts:84` — checks the order total, not the ledger balance;
-a partial refund followed by this path double-refunds.
-Why: refunds must be computed against the ledger (rule: rules/payments.md, PR #482)
-Suggestion:
+**What:** `src/billing/refunds.ts:84` — checks the order total, not the ledger balance; a partial refund followed by this path double-refunds.
+**Why:** refunds must be computed against the ledger (rule: rules/payments.md, PR #482)
+**Fix:**
 ```diff
 - if (amount <= order.total) {
 + if (amount <= ledger.remainingBalance(order.id)) {
 ```
 
 ### 🔵 Consider — new endpoint has no rate-limit annotation
-`src/api/routes.ts:112` — every public endpoint added since PR #519 carries one.
+**What:** `src/api/routes.ts:112` — every public endpoint added since PR #519 carries one.
 
 Checked and fine: idempotency-key handling, migration ordering, webhook signature paths.
 ````

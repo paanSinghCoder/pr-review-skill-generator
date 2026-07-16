@@ -115,9 +115,9 @@ manufacture findings to seem thorough.
 ## Review: <one-line verdict>
 
 ### 🔴 Blocker — <title>
-`path/file.ts:42` — <what is wrong and the consequence>.
-Why: <business/correctness reason> (rule: rules/payments.md, PR #482)
-Suggestion:
+**What:** `path/file.ts:42` — one line: what is wrong.
+**Why:** one line: the consequence (rule: rules/payments.md, PR #482)
+**Fix:**
 ```diff
 - current
 + proposed
@@ -127,7 +127,8 @@ Suggestion:
 ### 🔵 Consider — <title> …
 
 ### 📝 Document the why (max 2, optional)
-`src/payments/retry.ts:57` — `BACKOFF_CAP = 7_000` looks deliberate but unexplained. Suggested comment:
+**What:** `src/payments/retry.ts:57` — `BACKOFF_CAP = 7_000` looks deliberate but unexplained.
+**Fix:**
 ```suggestion
 // 7s keeps total retry time under the gateway's 10s idempotency window (PR #612)
 ```
@@ -135,6 +136,13 @@ Suggestion:
 Checked and fine: <one line — invariants/zones checked that passed>
 Context I lacked: <only if applicable>
 ```
+
+Every finding is exactly three labeled lines — **What** (file:line + the
+issue, one line), **Why** (the consequence + citation, one line), **Fix**
+(a concrete diff, or a one-line instruction when no local diff applies).
+Never expand a label into a paragraph; if the reasoning needs more than one
+line, the finding is too speculative to report — cut it or downgrade it to
+`(judgment)`.
 
 Severity: **Blocker** = violates an invariant/decision or breaks correctness;
 **Should fix** = real defect or rule violation, ship-blocking at reviewer's
